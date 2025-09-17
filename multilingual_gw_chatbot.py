@@ -4,8 +4,7 @@ from transformers import pipeline
 import re
 import plotly.graph_objects as go
 
-# Initialize translator and NLP classifier
-translator = Translator()
+# Initialize NLP classifier
 nlp_classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
 # Sample groundwater data
@@ -52,21 +51,17 @@ def plot_recharge_trend(unit):
 
 st.title("INGRES Groundwater Data Chatbot with Multilingual Support")
 
-# Select input language
 input_lang = st.selectbox("Select your language:", ["auto", "hi", "en", "ta", "bn", "te"])
 
 user_query = st.text_area("Enter your groundwater query:")
 
 if st.button("Submit"):
-    # Translate user query to English
     translated_query = translate_text(user_query, src_lang=input_lang, dest_lang='en')
     st.write(f"Translated query (to English): {translated_query}")
 
-    # Parse query
     parsed = parse_user_query(translated_query)
     st.write(f"Parsed query: {parsed}")
 
-    # Fetch data
     info = get_groundwater_info(parsed["unit"], parsed["year"], parsed["parameter"])
     if info is None:
         response_en = "Requested data not found."
@@ -74,13 +69,12 @@ if st.button("Submit"):
         response_en = f"{parsed['parameter'].capitalize()} in {parsed['unit']} for {parsed['year']}: {info}"
     st.write(f"Response (in English): {response_en}")
 
-    # Translate response back to input language if needed
     if input_lang != 'en' and input_lang != 'auto':
         response_translated = translate_text(response_en, src_lang='en', dest_lang=input_lang)
         st.write(f"Response (in your language): {response_translated}")
 
-    # Show visualization if parameter is recharge
     if parsed["parameter"] == "recharge" and info is not None:
         fig = plot_recharge_trend(parsed["unit"])
         if fig:
             st.plotly_chart(fig)
+
